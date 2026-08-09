@@ -52,6 +52,11 @@
             android:name=".VideoListActivity"
             android:exported="false"
             android:theme="@style/Base.Theme.AppCompat" />
+        <activity
+            android:name=".QrScanActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Base.Theme.AppCompat" />
     </application>
 
 </manifest>
