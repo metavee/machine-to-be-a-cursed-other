@@ -6,4 +6,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <string name="qr_scan_hint">Point the camera at your viewer\'s QR code</string>
+    <string name="qr_scan_manual_entry">Enter URL manually</string>
 </resources>

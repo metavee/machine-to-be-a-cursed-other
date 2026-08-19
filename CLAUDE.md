@@ -35,6 +35,10 @@ There are no unit tests in the project. "Verifying a change builds" means a clea
 - Android Gradle Plugin **8.5.2**, Gradle **8.9**, JDK **17**
 - `compileSdk` / `targetSdk` **34**, `minSdk` **21**
 - AndroidX (the app was migrated off the legacy `android.support.*` libraries)
+- The QR calibration scanner pulls in **CameraX 1.3.4** (`camera-core`/`camera-camera2`/
+  `camera-lifecycle`/`camera-view`) and **ML Kit `barcode-scanning:17.3.0`** (bundled
+  on-device model). Keep CameraX on the **1.3.x** line — 1.4.x requires `compileSdk 35`, which
+  this module is not on. Both resolve from the already-configured `google()`/`mavenCentral()`.
 
 ## VR rendering & viewer calibration (no VR SDK)
 
@@ -66,12 +70,16 @@ How it works now:
   protobuf runtime dependency), persists the raw bytes in `SharedPreferences`, and
   computes an asymmetric frustum per eye so each eye's image is centered under its lens
   and scaled to the headset. A built-in Cardboard v2 default is used until one is saved.
-- Calibration input is currently **manual**: the "Calibrate viewer" button in
-  `MainActivity` prompts for the profile URL and saves it. A **QR short link** (e.g.
-  `goo.gl/…`) can be pasted directly — `MainActivity#resolveDeviceParams` follows the HTTP
+- Calibration input is **camera-first**: the "Calibrate viewer" button in `MainActivity`
+  launches `QrScanActivity`, which shows a live camera preview and decodes the headset's QR
+  with ML Kit (on-device bundled model, QR only) over a CameraX `ImageAnalysis` stream. The
+  scanner returns only the raw scanned **string**; `MainActivity` feeds it into the same
+  `resolveAndSaveProfile` path as before. Manual URL **paste** is kept as a fallback
+  (`MainActivity#showManualUrlDialog`), reached via the scanner's "Enter URL manually" button
+  or automatically when the camera permission is denied. A **QR short link** (e.g. `goo.gl/…`)
+  works whether scanned or pasted — `MainActivity#resolveDeviceParams` follows the HTTP
   redirects on a background thread until it reaches the `cfg?p=` URL (stopping before the
-  "get Cardboard" landing page). (A camera-based QR scanner is a deliberate future
-  enhancement — see the backlog.)
+  "get Cardboard" landing page).
 - Lens **barrel distortion** is applied by `DistortionRenderer`: each eye is rendered to
   an off-screen FBO, then drawn to the screen through a pre-distorted mesh built from the
   profile's `distortion_coefficients` (Cardboard's `r*(1+k1*r²+k2*r⁴)` model, inverted
@@ -81,12 +89,16 @@ How it works now:
 
 ## CI / releases
 
-`.github/workflows/android.yml` builds on pushes (to `master`, `main`, and
-`claude/**`), PRs, and manual dispatch. There are two paths:
+`.github/workflows/android.yml` builds on pushes to **any branch** and manual
+dispatch (there is no separate `pull_request` trigger — a PR's branch already
+builds from its push, so adding one would just double the runs). There are two
+paths:
 
-- **Working branches (`claude/**`), PRs, and manual runs** build a **debug** APK.
-  Non-PR runs publish it to a rolling **`debug-latest`** GitHub *pre-release*
-  (direct-download `.apk`, no zip) and upload it as a zipped workflow artifact.
+- **Any non-default branch push and manual runs** build a **debug** APK and
+  publish it to a rolling **`debug-latest`** GitHub *pre-release* (direct-download
+  `.apk`, no zip) and upload it as a zipped workflow artifact. (`debug-latest` is
+  a single rolling pre-release, so concurrent pushes on different branches
+  overwrite each other's debug APK there.)
 - **Merges to `main`/`master`** build a **release** APK and publish it as a full
   (non-pre) GitHub **Release** with a stable, versioned tag
   (`v<versionName>-build.<run#>`), marked as the repo's "Latest release".
@@ -110,7 +122,8 @@ explicitly. Keep this minimal set — don't reintroduce storage or phone-state p
 
 ## Key files
 
-- `app/src/main/java/.../MainActivity.java` — launcher menu + camera permission + "Calibrate viewer" URL entry
+- `app/src/main/java/.../MainActivity.java` — launcher menu + camera permission + "Calibrate viewer" (launches the QR scanner; manual URL paste as fallback)
+- `app/src/main/java/.../QrScanActivity.java` — CameraX + ML Kit QR scanner; returns the scanned string for calibration
 - `app/src/main/java/.../TextureTestActivity.java` — the custom GLSurfaceView stereo renderer (view / record / playback)
 - `app/src/main/java/.../CardboardProfile.java` — Cardboard viewer profile: QR/protobuf parse, persistence, per-eye frustum
 - `app/src/main/java/.../VideoListActivity.java` — recorded-video picker
@@ -121,10 +134,9 @@ explicitly. Keep this minimal set — don't reintroduce storage or phone-state p
 
 The app builds and runs but still leans on deprecated APIs. Durable follow-ups:
 
-- Replace the deprecated `android.hardware.Camera` API with Camera2/CameraX.
-- Add an in-app **QR scanner** for calibration so users can scan a viewer's code directly
-  instead of pasting its URL (e.g. ZXing, which needs minSdk 24, or ML Kit / Google Code
-  Scanner).
+- Replace the deprecated `android.hardware.Camera` API (still used by `TextureTestActivity`)
+  with Camera2/CameraX. (The calibration `QrScanActivity` already uses CameraX; the stereo
+  passthrough renderer does not.)
 - **Verify/tune the lens distortion on a real headset.** `DistortionRenderer` builds and
   is correct in principle, but its output has not been eyeballed on-device; confirm lines
   look straight through the lenses and adjust if the model/coefficients need refining.

@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.text.InputType;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -19,6 +21,23 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
+
+    /** Launches the QR scanner and handles the scanned viewer-calibration string. */
+    private final ActivityResultLauncher<Intent> qrScanLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() != RESULT_OK) {
+                    return; // user backed out, or the camera was unavailable
+                }
+                String qr = result.getData() != null
+                        ? result.getData().getStringExtra(QrScanActivity.EXTRA_QR_TEXT) : null;
+                if (qr != null && !qr.trim().isEmpty()) {
+                    resolveAndSaveProfile(qr.trim());
+                } else {
+                    // "Enter URL manually" tapped in the scanner: fall back to the paste dialog.
+                    showManualUrlDialog();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,12 +89,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Prompts for the viewer's Cardboard calibration URL (the one encoded in the QR code on
-     * the headset, e.g. https://google.com/cardboard/cfg?p=...) and saves it as the active
-     * viewer profile. This is the same profile format the official Cardboard app uses; the
-     * stereo renderer reads it via {@link CardboardProfile}.
+     * Calibrates to the viewer by scanning the QR code printed on the headset. Launches the
+     * in-app camera scanner ({@link QrScanActivity}); the scanned string is handed to
+     * {@link #resolveAndSaveProfile} (see the {@code qrScanLauncher} result handler). If the
+     * camera permission is denied, falls back to the manual URL-paste dialog so calibration is
+     * still possible. The scanned/pasted value is the same Cardboard profile URL the official
+     * Cardboard app uses; the stereo renderer reads it via {@link CardboardProfile}.
      */
     public void calibrate(View view) {
+        if (!this.askCameraPermission()) {
+            Toast.makeText(this, "Permission denied to read camera", Toast.LENGTH_SHORT).show();
+            showManualUrlDialog();
+            return;
+        }
+        qrScanLauncher.launch(new Intent(this, QrScanActivity.class));
+    }
+
+    /**
+     * Fallback calibration input: prompts for the viewer's Cardboard calibration URL (the one
+     * encoded in the QR code on the headset, e.g. https://google.com/cardboard/cfg?p=...) and
+     * saves it. Used when the camera scan isn't available (permission denied) or when the user
+     * chooses "Enter URL manually" on the scanner screen.
+     */
+    private void showManualUrlDialog() {
         final EditText input = new EditText(this);
         input.setHint("https://google.com/cardboard/cfg?p=…  or a QR short link");
         input.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
@@ -115,7 +151,9 @@ public class MainActivity extends AppCompatActivity {
                 if (params != null) {
                     saveProfile(params);
                 } else {
-                    Toast.makeText(this, "Couldn't find a Cardboard profile at that link",
+                    // Show the scanned/entered text so a failing viewer link is debuggable
+                    // on-device (e.g. an unexpected host, or a dead short link).
+                    Toast.makeText(this, "No Cardboard profile found at: " + url,
                             Toast.LENGTH_LONG).show();
                 }
             });
@@ -139,6 +177,18 @@ public class MainActivity extends AppCompatActivity {
         String current = startUrl;
         try {
             for (int hop = 0; hop < 10 && current != null; hop++) {
+                // Normalize the scheme so the link can actually be opened. Cardboard QR
+                // codes may encode a bare short link with no scheme (e.g. "goo.gl/…"),
+                // which isn't a valid URL at all, or a cleartext "http://…" one, which
+                // Android blocks by default (targetSdk 28+) so the request silently fails.
+                // The goo.gl shortener and google.com both serve the profile over HTTPS, so
+                // upgrading to https lets a scanned link resolve the same as a pasted one.
+                if (current.startsWith("http://")) {
+                    current = "https://" + current.substring("http://".length());
+                } else if (!current.contains("://")) {
+                    current = "https://" + current;
+                }
+
                 byte[] params = CardboardProfile.deviceParamsFromUri(current);
                 if (params != null && CardboardProfile.parse(params) != null) {
                     return params;

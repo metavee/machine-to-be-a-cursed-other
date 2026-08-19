@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Decorative aiming frame for the QR scanner. Purely a visual guide — ML Kit scans the
+     whole camera frame, not just this region. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <stroke
+        android:width="3dp"
+        android:color="#CCFFFFFF" />
+    <solid android:color="@android:color/transparent" />
+</shape>

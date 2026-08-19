@@ -32,6 +32,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="calibrate"
-        android:text="Calibrate viewer" />
+        android:text="Calibrate" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>
