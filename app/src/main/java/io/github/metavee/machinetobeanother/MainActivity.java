@@ -177,13 +177,16 @@ public class MainActivity extends AppCompatActivity {
         String current = startUrl;
         try {
             for (int hop = 0; hop < 10 && current != null; hop++) {
-                // Older Cardboard viewers encode an http:// short link (e.g.
-                // http://goo.gl/…) in their QR. Android blocks cleartext HTTP by default
-                // (targetSdk 28+), so that request would silently fail. Upgrade to HTTPS —
-                // both the goo.gl shortener and google.com serve the profile over HTTPS —
-                // so a scanned http:// link resolves the same as a pasted https:// one.
+                // Normalize the scheme so the link can actually be opened. Cardboard QR
+                // codes may encode a bare short link with no scheme (e.g. "goo.gl/…"),
+                // which isn't a valid URL at all, or a cleartext "http://…" one, which
+                // Android blocks by default (targetSdk 28+) so the request silently fails.
+                // The goo.gl shortener and google.com both serve the profile over HTTPS, so
+                // upgrading to https lets a scanned link resolve the same as a pasted one.
                 if (current.startsWith("http://")) {
                     current = "https://" + current.substring("http://".length());
+                } else if (!current.contains("://")) {
+                    current = "https://" + current;
                 }
 
                 byte[] params = CardboardProfile.deviceParamsFromUri(current);
