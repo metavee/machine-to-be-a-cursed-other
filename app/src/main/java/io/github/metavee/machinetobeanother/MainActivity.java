@@ -151,7 +151,9 @@ public class MainActivity extends AppCompatActivity {
                 if (params != null) {
                     saveProfile(params);
                 } else {
-                    Toast.makeText(this, "Couldn't find a Cardboard profile at that link",
+                    // Show the scanned/entered text so a failing viewer link is debuggable
+                    // on-device (e.g. an unexpected host, or a dead short link).
+                    Toast.makeText(this, "No Cardboard profile found at: " + url,
                             Toast.LENGTH_LONG).show();
                 }
             });
@@ -175,6 +177,15 @@ public class MainActivity extends AppCompatActivity {
         String current = startUrl;
         try {
             for (int hop = 0; hop < 10 && current != null; hop++) {
+                // Older Cardboard viewers encode an http:// short link (e.g.
+                // http://goo.gl/…) in their QR. Android blocks cleartext HTTP by default
+                // (targetSdk 28+), so that request would silently fail. Upgrade to HTTPS —
+                // both the goo.gl shortener and google.com serve the profile over HTTPS —
+                // so a scanned http:// link resolves the same as a pasted https:// one.
+                if (current.startsWith("http://")) {
+                    current = "https://" + current.substring("http://".length());
+                }
+
                 byte[] params = CardboardProfile.deviceParamsFromUri(current);
                 if (params != null && CardboardProfile.parse(params) != null) {
                     return params;
