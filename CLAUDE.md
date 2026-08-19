@@ -89,14 +89,16 @@ How it works now:
 
 ## CI / releases
 
-`.github/workflows/android.yml` builds on pushes to **any branch**, PRs, and
-manual dispatch. There are two paths:
+`.github/workflows/android.yml` builds on pushes to **any branch** and manual
+dispatch (there is no separate `pull_request` trigger — a PR's branch already
+builds from its push, so adding one would just double the runs). There are two
+paths:
 
-- **Any non-default branch, PRs, and manual runs** build a **debug** APK.
-  Non-PR runs publish it to a rolling **`debug-latest`** GitHub *pre-release*
-  (direct-download `.apk`, no zip) and upload it as a zipped workflow artifact.
-  (`debug-latest` is a single rolling pre-release, so concurrent pushes on
-  different branches overwrite each other's debug APK there.)
+- **Any non-default branch push and manual runs** build a **debug** APK and
+  publish it to a rolling **`debug-latest`** GitHub *pre-release* (direct-download
+  `.apk`, no zip) and upload it as a zipped workflow artifact. (`debug-latest` is
+  a single rolling pre-release, so concurrent pushes on different branches
+  overwrite each other's debug APK there.)
 - **Merges to `main`/`master`** build a **release** APK and publish it as a full
   (non-pre) GitHub **Release** with a stable, versioned tag
   (`v<versionName>-build.<run#>`), marked as the repo's "Latest release".

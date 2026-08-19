@@ -9,8 +9,9 @@ on:
     # Note: "debug-latest" is a single rolling pre-release, so concurrent pushes
     # on different branches overwrite each other's debug APK there.
     branches: [ "**" ]
-  pull_request:
-    branches: [ "master", "main" ]
+  # No separate pull_request trigger: because push already runs on every branch,
+  # a PR's branch builds from its push, and adding pull_request would just double
+  # every run on branches that have an open PR.
   # Allow running the workflow manually from the Actions tab (available once
   # this workflow exists on the default branch).
   workflow_dispatch:
@@ -25,7 +26,7 @@ jobs:
 
     # Whether this run targets the default branch (a merge to main/master).
     # Such runs cut a full, versioned release from a signed release build.
-    # Everything else (PRs, "claude/**" pushes, manual runs off a working
+    # Everything else (any other branch push, manual runs off a working
     # branch) produces a debug build and the rolling "debug-latest" pre-release.
     env:
       IS_RELEASE: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
@@ -60,9 +61,9 @@ jobs:
         run: chmod +x ./gradlew
 
       # ------------------------------------------------------------------
-      # Debug build path — PRs, "claude/**" pushes and manual working-branch
-      # runs. Publishes the rolling "debug-latest" pre-release for easy
-      # sideloading of in-progress work.
+      # Debug build path — any non-default branch push and manual
+      # working-branch runs. Publishes the rolling "debug-latest" pre-release
+      # for easy sideloading of in-progress work.
       # ------------------------------------------------------------------
       - name: Build debug APK
         if: env.IS_RELEASE == 'false'
@@ -82,10 +83,10 @@ jobs:
           if-no-files-found: error
 
       - name: Publish the debug APK to a rolling pre-release
-        # Skip on pull_request builds; publish on working-branch pushes and
-        # manual runs. Attaches the raw .apk to a GitHub pre-release so it can
-        # be downloaded directly (no zip) for sideloading onto a phone.
-        if: env.IS_RELEASE == 'false' && github.event_name != 'pull_request'
+        # Publish on every non-default branch push and manual run. Attaches the
+        # raw .apk to a GitHub pre-release so it can be downloaded directly (no
+        # zip) for sideloading onto a phone.
+        if: env.IS_RELEASE == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
