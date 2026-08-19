@@ -2,10 +2,13 @@ name: Android CI
 
 on:
   push:
-    # "claude/**" is included so that pushes to the AI-assisted working
-    # branches also produce a downloadable (debug) build (see the publish
-    # steps below). Pushes to "main"/"master" instead cut a full release.
-    branches: [ "master", "main", "claude/**" ]
+    # Every branch push produces a downloadable build. Pushes to "main"/"master"
+    # cut a full versioned release; every other branch produces a debug build and
+    # refreshes the rolling "debug-latest" pre-release (see the publish steps
+    # below) — handy for sideloading in-progress work no matter the branch name.
+    # Note: "debug-latest" is a single rolling pre-release, so concurrent pushes
+    # on different branches overwrite each other's debug APK there.
+    branches: [ "**" ]
   pull_request:
     branches: [ "master", "main" ]
   # Allow running the workflow manually from the Actions tab (available once
