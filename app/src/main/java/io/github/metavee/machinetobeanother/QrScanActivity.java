@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,8 @@ import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
+import androidx.camera.core.resolutionselector.ResolutionSelector;
+import androidx.camera.core.resolutionselector.ResolutionStrategy;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
@@ -103,7 +106,18 @@ public class QrScanActivity extends AppCompatActivity {
             Preview preview = new Preview.Builder().build();
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
+            // Analyze at ~1080p (higher-then-lower fallback) rather than the ImageAnalysis
+            // default of 640x480. Dense QR codes — like the small older "Viewer profile" code
+            // printed on classic Cardboard viewers — don't have enough pixels per module to
+            // decode at 640x480, so they'd silently never scan; the extra resolution fixes that.
+            ResolutionSelector resolutionSelector = new ResolutionSelector.Builder()
+                    .setResolutionStrategy(new ResolutionStrategy(
+                            new Size(1920, 1080),
+                            ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
+                    .build();
+
             ImageAnalysis analysis = new ImageAnalysis.Builder()
+                    .setResolutionSelector(resolutionSelector)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
             analysis.setAnalyzer(cameraExecutor, this::analyze);
