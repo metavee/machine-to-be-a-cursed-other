@@ -85,11 +85,10 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
 
     private boolean recording = false;
 
-    private boolean LR_inversion = false;
-
-    // True when the live camera is shown as a life-size passthrough (full frame on an
-    // FOV-sized quad) rather than center-cropped onto the square quad.
-    private boolean lifeSize = false;
+    // The live view is always shown left/right-mirrored — that mirroring is the whole point
+    // of the app, so there is no longer a trigger to toggle it off. Playback is shown
+    // un-mirrored (see startPlayback).
+    private final boolean LR_inversion = true;
 
     private Camera Webcam;
     private SurfaceTexture WebcamSurface;
@@ -199,12 +198,10 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
             rectVertices.put(WorldLayoutData.getRectCoords(halfX, halfY));
             rectVertices.position(0);
 
-            lifeSize = true;
             rectTextureCoordinates.put(WorldLayoutData.getFullTextureCoords(this.LR_inversion));
             rectTextureCoordinates.position(0);
         } else {
             // No reliable camera FOV: fall back to center-cropping onto the default square quad.
-            lifeSize = false;
             rectTextureCoordinates.put(WorldLayoutData.getRectTextureCoords(Webcam_AR, this.LR_inversion));
             rectTextureCoordinates.position(0);
         }
@@ -402,7 +399,9 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
 
         // A tap anywhere is the trigger, replacing the Cardboard magnet/button. Modern
         // Cardboard viewers press a conductive lever onto the screen, which the system
-        // already reports as a touch, so this also handles physical viewer buttons.
+        // already reports as a touch, so this also handles physical viewer buttons. The
+        // trigger only does anything in record mode (start/stop recording); the live view
+        // is always left/right-mirrored and has nothing to toggle.
         final GestureDetector gestureDetector =
                 new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
                     @Override
@@ -822,30 +821,12 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
     */
     private void onTriggerTap() {
         Log.i(TAG, "onTriggerTap");
-        switch (mode) {
-            case MODE_VIEW:
-                // toggleView mutates the GL texture-coordinate buffer, so run it on the
-                // GL thread.
-                if (glView != null) {
-                    glView.queueEvent(this::toggleView);
-                }
-                break;
-            case MODE_RECORD:
-                // Camera / MediaRecorder work stays off the GL thread.
-                this.toggleRecord();
-                break;
+        // In record mode the trigger starts/stops recording. In view mode there is nothing
+        // to trigger — the live view is always shown left/right-mirrored.
+        if (mode == MODE_RECORD) {
+            // Camera / MediaRecorder work stays off the GL thread.
+            this.toggleRecord();
         }
-    }
-
-    private void toggleView() {
-        this.LR_inversion = !this.LR_inversion;
-
-        float[] texCoords = lifeSize
-                ? WorldLayoutData.getFullTextureCoords(this.LR_inversion)
-                : WorldLayoutData.getRectTextureCoords(Webcam_AR, this.LR_inversion);
-
-        rectTextureCoordinates.put(texCoords);
-        rectTextureCoordinates.position(0);
     }
 
     private void toggleRecord() {
