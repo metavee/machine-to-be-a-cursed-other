@@ -1,7 +1,11 @@
 # machine-to-be-a-cursed-other
 
-An amateur neuroscience experiment on visual perception using VR/AR. A "cursed"
-variant inspired by — but deliberately diverging from — The Machine To Be Another.
+An amateur neuroscience experiment on visual perception using VR/AR.
+
+> **Inspired by [The Machine To Be Another](https://beanotherlab.org/home/work/tmtba/)**
+> by [BeAnotherLab](https://beanotherlab.org/). This is an independent, low-budget "cursed"
+> variant that deliberately diverges from that work — it is not affiliated with or endorsed
+> by BeAnotherLab. Please support and credit the original project.
 
 The camera output from the phone is rendered on the screen. By tapping the screen (or using the main button on the VR viewer), the image is left/right mirrored.
 
@@ -51,7 +55,9 @@ phone camera, as shown below on a MINKANAK Google Cardboard V2:
 
 ## Acknowledgements
 
-This project was originally a low budget implementation of The Machine To Be Another.
+This project was originally a low budget implementation of
+[The Machine To Be Another](https://beanotherlab.org/home/work/tmtba/) by
+[BeAnotherLab](https://beanotherlab.org/).
 
 The code is pretty rough, as I had no experience with Android, OpenGL, or VR at the time. I used lots of code from these resources, among others:
 
