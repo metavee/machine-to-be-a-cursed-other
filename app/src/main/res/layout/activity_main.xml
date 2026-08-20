@@ -14,20 +14,6 @@
         android:text="View" />
 
     <Button
-        android:id="@+id/record_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="startRecord"
-        android:text="Record" />
-
-    <Button
-        android:id="@+id/playback_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="startPlayback"
-        android:text="Playback" />
-
-    <Button
         android:id="@+id/calibrate_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

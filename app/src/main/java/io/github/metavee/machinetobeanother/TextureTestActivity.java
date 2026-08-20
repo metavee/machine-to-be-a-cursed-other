@@ -16,23 +16,16 @@
 
 package io.github.metavee.machinetobeanother;
 
-import android.content.Intent;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -42,15 +35,12 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -72,22 +62,8 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class TextureTestActivity extends AppCompatActivity implements GLSurfaceView.Renderer {
 
-    private MediaRecorder MR;
-
-    private MediaPlayer MP;
-    private String media_path;
-
-    public static final int MODE_VIEW = 0;
-    public static final int MODE_RECORD = 1;
-    public static final int MODE_PLAYBACK = 2;
-
-    private int mode;
-
-    private boolean recording = false;
-
     // The live view is always shown left/right-mirrored — that mirroring is the whole point
-    // of the app, so there is no longer a trigger to toggle it off. Playback is shown
-    // un-mirrored (see startPlayback).
+    // of the app, so there is no trigger to toggle it off.
     private final boolean LR_inversion = true;
 
     private Camera Webcam;
@@ -361,14 +337,6 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
         // Model first appears directly in front of user.
         modelPosition = new float[] {0.0f, 0.0f, -MAX_MODEL_DISTANCE / 2.0f};
 
-        // get mode
-        Intent intent = getIntent();
-        this.mode = intent.getIntExtra("mode", MODE_VIEW);
-
-        if (mode == MODE_PLAYBACK) {
-            media_path = intent.getStringExtra("filename");
-        }
-
         // Load the scanned viewer calibration (or the built-in default) that drives the
         // per-eye stereo geometry.
         profile = CardboardProfile.load(this);
@@ -396,27 +364,6 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
         glView.setPreserveEGLContextOnPause(true);
         glView.setRenderer(this);
         glView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-
-        // A tap anywhere is the trigger, replacing the Cardboard magnet/button. Modern
-        // Cardboard viewers press a conductive lever onto the screen, which the system
-        // already reports as a touch, so this also handles physical viewer buttons. The
-        // trigger only does anything in record mode (start/stop recording); the live view
-        // is always left/right-mirrored and has nothing to toggle.
-        final GestureDetector gestureDetector =
-                new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-                    @Override
-                    public boolean onSingleTapUp(MotionEvent e) {
-                        onTriggerTap();
-                        return true;
-                    }
-                });
-        // Return true so we keep receiving the whole gesture: if we returned the detector's
-        // result, the initial DOWN (false from SimpleOnGestureListener) would stop delivery
-        // and onSingleTapUp would never fire.
-        glView.setOnTouchListener((v, event) -> {
-            gestureDetector.onTouchEvent(event);
-            return true;
-        });
     }
 
     /** Hides the system bars and lets the window extend into the display cutout, so the GL
@@ -446,29 +393,15 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
     @Override
     protected void onPause() {
         super.onPause();
-        if (mode == MODE_RECORD && recording) {
-            this.stopRecording();
-        }
 
         if (glView != null) {
             glView.onPause();
         }
 
-        if (mode != MODE_PLAYBACK) {
-            if (Webcam != null) {
-                Webcam.release();
-                Webcam = null;
-            }
-        } else {
-            if (MP != null) {
-                if (MP.isPlaying()) {
-                    MP.stop();
-                }
-                MP.release();
-                MP = null;
-            }
+        if (Webcam != null) {
+            Webcam.release();
+            Webcam = null;
         }
-
     }
 
     @Override
@@ -476,21 +409,15 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
         super.onResume();
         if (glView != null) {
             glView.onResume();
-            // Re-acquire the camera / media player on the GL thread once the surface
-            // exists. If the GL context was lost, onSurfaceCreated has already done this
-            // and the guards below make the queued call a no-op.
+            // Re-acquire the camera on the GL thread once the surface exists. If the GL
+            // context was lost, onSurfaceCreated has already done this and the guard below
+            // makes the queued call a no-op.
             glView.queueEvent(() -> {
                 if (textureDataHandle == 0) {
                     return;
                 }
-                if (mode == MODE_PLAYBACK) {
-                    if (MP == null) {
-                        startPlayback(textureDataHandle);
-                    }
-                } else {
-                    if (Webcam == null) {
-                        startCamera(textureDataHandle);
-                    }
+                if (Webcam == null) {
+                    startCamera(textureDataHandle);
                 }
             });
         }
@@ -662,12 +589,7 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
 
         checkGLError("onSurfaceCreated");
 
-        if (mode == MODE_PLAYBACK) {
-            this.startPlayback(textureDataHandle);
-        } else {
-            this.startCamera(textureDataHandle);
-        }
-
+        this.startCamera(textureDataHandle);
     }
 
     /**
@@ -814,104 +736,6 @@ public class TextureTestActivity extends AppCompatActivity implements GLSurfaceV
         GLES20.glDisableVertexAttribArray(textureCoordinateParam);
 
         checkGLError("Drawing rect");
-    }
-
-    /**
-    * Called when the viewer trigger (a screen tap) fires.
-    */
-    private void onTriggerTap() {
-        Log.i(TAG, "onTriggerTap");
-        // In record mode the trigger starts/stops recording. In view mode there is nothing
-        // to trigger — the live view is always shown left/right-mirrored.
-        if (mode == MODE_RECORD) {
-            // Camera / MediaRecorder work stays off the GL thread.
-            this.toggleRecord();
-        }
-    }
-
-    private void toggleRecord() {
-        if (this.recording) {
-            this.stopRecording();
-        } else {
-            this.startRecording();
-        }
-    }
-
-    private void startPlayback(int texture) {
-        if (MP != null) {
-            return;
-        }
-
-        MP = new MediaPlayer();
-        try {
-            MP.setDataSource(media_path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        WebcamSurface = new SurfaceTexture(texture);
-
-        Surface surf = new Surface(WebcamSurface);
-        MP.setSurface(surf);
-        surf.release();
-
-        try {
-            MP.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        float h = MP.getVideoHeight();
-        float w = MP.getVideoWidth();
-        Webcam_AR = h / w;
-
-        float[] RECT_TEXTURE_COORDS = WorldLayoutData.getRectTextureCoords(Webcam_AR, false);
-
-        rectTextureCoordinates.put(RECT_TEXTURE_COORDS);
-        rectTextureCoordinates.position(0);
-
-        MP.start();
-    }
-
-    private void startRecording() {
-        MR = new MediaRecorder();
-        Webcam.unlock();
-        MR.setCamera(Webcam);
-
-        MR.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-
-        MR.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        MR.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        MR.setVideoSize(1280, 720);
-        MR.setVideoFrameRate(30);
-        MR.setVideoEncodingBitRate(3000000);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-        Date now = new Date();
-
-        File outdir = getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_MOVIES);
-        assert outdir.mkdirs();
-        String fn = new File(outdir, sdf.format(now) + ".mp4").toString();
-        MR.setOutputFile(fn);
-
-        // set preview output
-
-        try {
-            MR.prepare();
-            MR.start();
-            this.recording = true;
-        } catch (IOException ioe) {
-            this.stopRecording();
-        }
-    }
-
-    private void stopRecording() {
-        MR.stop();
-        MR.reset();
-        MR.release();
-        Webcam.lock();
-
-        this.recording = false;
     }
 
 }
