@@ -4,8 +4,7 @@ An amateur neuroscience experiment on visual perception using VR/AR.
 
 > **Inspired by [The Machine To Be Another](https://beanotherlab.org/home/work/tmtba/)**
 > by [BeAnotherLab](https://beanotherlab.org/). This is an independent, low-budget "cursed"
-> variant that deliberately diverges from that work — it is not affiliated with or endorsed
-> by BeAnotherLab. Please support and credit the original project.
+> variant that ended up taking another direction.
 
 The camera output from the phone is rendered on the screen. By tapping the screen (or using the main button on the VR viewer), the image is left/right mirrored.
 
