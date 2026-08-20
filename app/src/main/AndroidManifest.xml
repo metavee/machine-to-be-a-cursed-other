@@ -3,11 +3,8 @@
 
     <!--
         CAMERA is the only permission the app actually needs, and it is requested
-        at runtime (see MainActivity). Recorded videos are written to the app's
-        own external files dir (Context#getExternalFilesDir), which needs no
-        storage permission on any supported Android version, so the legacy
-        READ/WRITE_EXTERNAL_STORAGE and READ_PHONE_STATE permissions have been
-        removed.
+        at runtime (see MainActivity). The legacy READ/WRITE_EXTERNAL_STORAGE and
+        READ_PHONE_STATE permissions have been removed.
     -->
     <uses-permission android:name="android.permission.CAMERA" />
 
@@ -48,10 +45,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".VideoListActivity"
-            android:exported="false"
-            android:theme="@style/Base.Theme.AppCompat" />
         <activity
             android:name=".QrScanActivity"
             android:exported="false"

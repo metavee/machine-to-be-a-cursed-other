@@ -5,11 +5,11 @@ Guidance for working in this repository.
 ## What this is
 
 An Android VR/AR perception experiment (a low-budget "The Machine To Be Another").
-It renders the phone's rear camera to the screen in stereo for a Cardboard headset;
-tapping the trigger (a screen tap) left/right-mirrors the image. Stereo is drawn by a
-small in-app renderer whose per-eye geometry comes from a Cardboard viewer profile, so
-different headsets can be calibrated (see the VR-rendering section below). Single-module
-Android app, written in Java, package `io.github.metavee.machinetobeanother`.
+It renders the phone's rear camera to the screen in stereo for a Cardboard headset,
+always left/right-mirrored. Stereo is drawn by a small in-app renderer whose per-eye
+geometry comes from a Cardboard viewer profile, so different headsets can be calibrated
+(see the VR-rendering section below). Single-module Android app, written in Java,
+package `io.github.metavee.machinetobeanother`.
 
 ## Build & run
 
@@ -57,12 +57,12 @@ How it works now:
   The activity runs **edge-to-edge/immersive** (system bars hidden, drawn into the
   cutout) so the GL surface covers the whole physical screen; the per-eye geometry assumes
   the full screen, and it keeps the screen awake (`FLAG_KEEP_SCREEN_ON`). A thin white
-  vertical **alignment line** is drawn down the screen center. A **screen tap** is the
-  trigger (toggles the left/right image mirror); there is no magnet/NFC.
+  vertical **alignment line** is drawn down the screen center. There is no trigger
+  (no screen tap, magnet, or NFC) — the view just renders the mirrored passthrough.
 - The live camera is shown as a **life-size passthrough**: the full frame is drawn on a
   quad sized (from `Camera#getHorizontalViewAngle`/`getVerticalViewAngle`) so the camera's
   field of view maps 1:1 to the eye, so objects appear their real-world size instead of
-  being center-cropped/magnified. Playback still center-crops onto the square quad.
+  being center-cropped/magnified.
 - Per-eye projection comes from a **Cardboard viewer profile** (`CardboardProfile`): the
   same lens/screen geometry the official Cardboard app uses, encoded in the QR code on a
   headset (`https://google.com/cardboard/cfg?p=<base64 DeviceParams protobuf>`).
@@ -114,19 +114,18 @@ debug signing key (see `app/build.gradle`) so the APK still installs for sideloa
 
 Two permissions are declared: `CAMERA` (requested at runtime in `MainActivity`) and
 `INTERNET`. INTERNET is used **only** to follow a calibration short link's redirects to
-the underlying profile URL (`MainActivity#resolveDeviceParams`). Recordings are written
-to the app's own external files dir (`getExternalFilesDir`), which needs no storage
-permission. (The `READ/WRITE_EXTERNAL_STORAGE` strips that used to counter the VR AAR's
-manifest contributions are gone with the AAR.) Every activity sets `android:exported`
-explicitly. Keep this minimal set — don't reintroduce storage or phone-state permissions.
+the underlying profile URL (`MainActivity#resolveDeviceParams`). No storage permission is
+needed — the app writes nothing to external storage. (The `READ/WRITE_EXTERNAL_STORAGE`
+strips that used to counter the VR AAR's manifest contributions are gone with the AAR.)
+Every activity sets `android:exported` explicitly. Keep this minimal set — don't
+reintroduce storage or phone-state permissions.
 
 ## Key files
 
 - `app/src/main/java/.../MainActivity.java` — launcher menu + camera permission + "Calibrate viewer" (launches the QR scanner; manual URL paste as fallback)
 - `app/src/main/java/.../QrScanActivity.java` — CameraX + ML Kit QR scanner; returns the scanned string for calibration
-- `app/src/main/java/.../TextureTestActivity.java` — the custom GLSurfaceView stereo renderer (view / record / playback)
+- `app/src/main/java/.../TextureTestActivity.java` — the custom GLSurfaceView stereo renderer (live mirrored passthrough)
 - `app/src/main/java/.../CardboardProfile.java` — Cardboard viewer profile: QR/protobuf parse, persistence, per-eye frustum
-- `app/src/main/java/.../VideoListActivity.java` — recorded-video picker
 - `app/src/main/java/.../WorldLayoutData.java` — quad geometry + L/R-flip texture coords
 - `app/src/main/res/raw/rect_*.glsl` — pass-through OES-texture shaders
 

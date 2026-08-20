@@ -3,7 +3,6 @@ package io.github.metavee.machinetobeanother;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Environment;
 import android.text.InputType;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -68,23 +67,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Intent intent = new Intent(this, TextureTestActivity.class);
-        intent.putExtra("mode", TextureTestActivity.MODE_VIEW);
-        startActivity(intent);
-    }
-
-    public void startRecord(View view) {
-        if (!this.askCameraPermission()) {
-            Toast.makeText(this, "Permission denied to read camera", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!this.isExternalStorageWritable()) {
-            Toast.makeText(this, "External storage unavailable", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Intent intent = new Intent(this, TextureTestActivity.class);
-        intent.putExtra("mode", TextureTestActivity.MODE_RECORD);
         startActivity(intent);
     }
 
@@ -214,21 +196,4 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    public void startPlayback(View view) {
-        if (!this.isExternalStorageWritable()) {
-            Toast.makeText(this, "External storage unavailable", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Intent intent = new Intent(this, VideoListActivity.class);
-        startActivity(intent);
-    }
-
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
-    }
 }
