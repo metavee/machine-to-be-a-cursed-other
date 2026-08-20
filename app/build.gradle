@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'io.github.metavee.machinetobeanother'
+    namespace 'io.github.metavee.machinetobeacursedother'
     compileSdk 34
 
     defaultConfig {
-        applicationId "io.github.metavee.machinetobeanother"
+        applicationId "io.github.metavee.machinetobeacursedother"
         // Raised from the original API 19 to the minimum supported by the modern
         // AndroidX libraries. Still covers essentially every device in use today.
         minSdk 21

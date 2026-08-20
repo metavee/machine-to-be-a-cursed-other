@@ -4,12 +4,13 @@ Guidance for working in this repository.
 
 ## What this is
 
-An Android VR/AR perception experiment (a low-budget "The Machine To Be Another").
+"Machine To Be A Cursed Other" — an Android VR/AR perception experiment, a low-budget
+"cursed" take inspired by (but deliberately diverging from) The Machine To Be Another.
 It renders the phone's rear camera to the screen in stereo for a Cardboard headset,
 always left/right-mirrored. Stereo is drawn by a small in-app renderer whose per-eye
 geometry comes from a Cardboard viewer profile, so different headsets can be calibrated
 (see the VR-rendering section below). Single-module Android app, written in Java,
-package `io.github.metavee.machinetobeanother`.
+package `io.github.metavee.machinetobeacursedother`.
 
 ## Build & run
 

@@ -1,6 +1,10 @@
-# machine-to-be-another
+# machine-to-be-a-cursed-other
 
 An amateur neuroscience experiment on visual perception using VR/AR.
+
+> **Inspired by [The Machine To Be Another](https://beanotherlab.org/home/work/tmtba/)**
+> by [BeAnotherLab](https://beanotherlab.org/). This is an independent, low-budget "cursed"
+> variant that ended up taking another direction.
 
 The camera output from the phone is rendered on the screen. By tapping the screen (or using the main button on the VR viewer), the image is left/right mirrored.
 
@@ -18,11 +22,11 @@ The **Android CI** GitHub Actions workflow builds a debug APK on every push.
 
 **Easiest (direct download, ideal for a phone):** each build publishes the APK to
 the rolling [`debug-latest`](../../releases/tag/debug-latest) pre-release. Open the
-**Releases** page, tap **MachineToBeAnother-debug.apk**, and it downloads directly
+**Releases** page, tap **MachineToBeACursedOther-debug.apk**, and it downloads directly
 (no zip) so Android can install it straight away.
 
 **Alternative (workflow artifact):** open the **Actions** tab, click the latest
-**Android CI** run, and download **MachineToBeAnother-debug-apk** from the
+**Android CI** run, and download **MachineToBeACursedOther-debug-apk** from the
 **Artifacts** section. GitHub always serves artifacts as a `.zip`, so you'll need to
 unzip it to get the APK.
 
@@ -50,7 +54,9 @@ phone camera, as shown below on a MINKANAK Google Cardboard V2:
 
 ## Acknowledgements
 
-This project was originally a low budget implementation of The Machine To Be Another.
+This project was originally a low budget implementation of
+[The Machine To Be Another](https://beanotherlab.org/home/work/tmtba/) by
+[BeAnotherLab](https://beanotherlab.org/).
 
 The code is pretty rough, as I had no experience with Android, OpenGL, or VR at the time. I used lots of code from these resources, among others:
 

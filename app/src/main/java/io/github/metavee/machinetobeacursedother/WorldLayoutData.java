@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.metavee.machinetobeanother;
+package io.github.metavee.machinetobeacursedother;
 
 /**
  * Contains vertex, normal and color data.
