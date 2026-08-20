@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.metavee.machinetobeanother;
+package io.github.metavee.machinetobeacursedother;
 
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;

@@ -1,4 +1,4 @@
-package io.github.metavee.machinetobeanother;
+package io.github.metavee.machinetobeacursedother;
 
 import android.content.Context;
 import android.opengl.GLES20;

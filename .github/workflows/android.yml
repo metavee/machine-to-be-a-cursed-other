@@ -71,15 +71,15 @@ jobs:
 
       - name: Give the debug APK a friendly name
         if: env.IS_RELEASE == 'false'
-        run: cp app/build/outputs/apk/debug/app-debug.apk MachineToBeAnother-debug.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk MachineToBeACursedOther-debug.apk
 
       - name: Upload debug APK as a workflow artifact
         if: env.IS_RELEASE == 'false'
         uses: actions/upload-artifact@v4
         with:
           # Downloadable (as a .zip) from the workflow run page under "Artifacts".
-          name: MachineToBeAnother-debug-apk
-          path: MachineToBeAnother-debug.apk
+          name: MachineToBeACursedOther-debug-apk
+          path: MachineToBeACursedOther-debug.apk
           if-no-files-found: error
 
       - name: Publish the debug APK to a rolling pre-release
@@ -93,7 +93,7 @@ jobs:
           # Recreate the rolling "debug-latest" pre-release so it points at this
           # commit and carries the freshly built APK as its only asset.
           gh release delete debug-latest --yes --cleanup-tag || true
-          gh release create debug-latest MachineToBeAnother-debug.apk \
+          gh release create debug-latest MachineToBeACursedOther-debug.apk \
             --title "Latest debug build" \
             --notes "Automated debug build from commit ${{ github.sha }}." \
             --prerelease \
@@ -130,14 +130,14 @@ jobs:
 
       - name: Give the release APK a friendly name
         if: env.IS_RELEASE == 'true'
-        run: cp app/build/outputs/apk/release/app-release.apk MachineToBeAnother-release.apk
+        run: cp app/build/outputs/apk/release/app-release.apk MachineToBeACursedOther-release.apk
 
       - name: Upload release APK as a workflow artifact
         if: env.IS_RELEASE == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: MachineToBeAnother-release-apk
-          path: MachineToBeAnother-release.apk
+          name: MachineToBeACursedOther-release-apk
+          path: MachineToBeACursedOther-release.apk
           if-no-files-found: error
 
       - name: Work out the release version and tag
@@ -149,7 +149,7 @@ jobs:
           # merges each get their own release instead of colliding.
           version_name=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle | head -n1)
           echo "tag=v${version_name}-build.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
-          echo "title=MachineToBeAnother ${version_name} (build ${{ github.run_number }})" >> "$GITHUB_OUTPUT"
+          echo "title=MachineToBeACursedOther ${version_name} (build ${{ github.run_number }})" >> "$GITHUB_OUTPUT"
 
       - name: Publish the release APK to a full GitHub Release
         if: env.IS_RELEASE == 'true'
@@ -158,7 +158,7 @@ jobs:
         run: |
           # A full (non-pre) release with a stable, versioned tag. --latest keeps
           # the repo's "Latest release" pointer on the newest build.
-          gh release create "${{ steps.version.outputs.tag }}" MachineToBeAnother-release.apk \
+          gh release create "${{ steps.version.outputs.tag }}" MachineToBeACursedOther-release.apk \
             --title "${{ steps.version.outputs.title }}" \
             --notes "Automated release build from commit ${{ github.sha }}." \
             --latest \

@@ -1,6 +1,7 @@
-# machine-to-be-another
+# machine-to-be-a-cursed-other
 
-An amateur neuroscience experiment on visual perception using VR/AR.
+An amateur neuroscience experiment on visual perception using VR/AR. A "cursed"
+variant inspired by — but deliberately diverging from — The Machine To Be Another.
 
 The camera output from the phone is rendered on the screen. By tapping the screen (or using the main button on the VR viewer), the image is left/right mirrored.
 
@@ -18,11 +19,11 @@ The **Android CI** GitHub Actions workflow builds a debug APK on every push.
 
 **Easiest (direct download, ideal for a phone):** each build publishes the APK to
 the rolling [`debug-latest`](../../releases/tag/debug-latest) pre-release. Open the
-**Releases** page, tap **MachineToBeAnother-debug.apk**, and it downloads directly
+**Releases** page, tap **MachineToBeACursedOther-debug.apk**, and it downloads directly
 (no zip) so Android can install it straight away.
 
 **Alternative (workflow artifact):** open the **Actions** tab, click the latest
-**Android CI** run, and download **MachineToBeAnother-debug-apk** from the
+**Android CI** run, and download **MachineToBeACursedOther-debug-apk** from the
 **Artifacts** section. GitHub always serves artifacts as a `.zip`, so you'll need to
 unzip it to get the APK.
 

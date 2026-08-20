@@ -1,4 +1,4 @@
-package io.github.metavee.machinetobeanother;
+package io.github.metavee.machinetobeacursedother;
 
 import android.Manifest;
 import android.content.Intent;
